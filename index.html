@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Document</title>
+        <!-- Plotly.js -->
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <!--k-means-->
+        <script src="kmeans.js"></script>
+        <style>
+            body {
+                margin: 0px;
+            }
+            #plot {
+                width: 100%;
+                height: 100vh;
+                background: rosybrown;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="plot"></div>
+        <script>
+            // Example data
+            const data = [
+                [1, 2],
+                [2, 1],
+                [2, 4],
+                [1, 3],
+                [2, 2],
+                [3, 1],
+                [1, 1],
+
+                [7, 3],
+                [8, 2],
+                [6, 4],
+                [7, 4],
+                [8, 1],
+                [9, 2],
+
+                [10, 8],
+                [9, 10],
+                [7, 8],
+                [7, 9],
+                [8, 11],
+                [9, 9],
+            ];
+            const k_means = new kMeans(data);
+            const layout = {
+                xaxis: {
+                    range: [k_means.dataExtremes[0].min - 1, k_means.dataExtremes[0].max + 1],
+                },
+                yaxis: {
+                    range: [k_means.dataExtremes[1].min - 1, k_means.dataExtremes[1].max + 1],
+                },
+            };
+            let plotData = [getTrace(data)];
+
+            Plotly.newPlot('plot', plotData, layout);
+            setTimeout(function() {
+                confirm('Ready to analyse');
+            });
+
+            while (k_means.moveCentroids()) {
+                plotData = [];
+
+                centroidsTrace = getTrace(k_means._centroids, 'Centroids');
+                centroidsTrace.marker = {
+                    opacity: 0.5,
+                    color: 'red',
+                    size: 20,
+                };
+
+                const clusters = k_means.getClusters();
+                clusters.forEach(cluster => {
+                    const trace = getTrace(cluster.points, cluster);
+                    plotData.push(trace);
+                });
+                setTimeout(function() {
+                    Plotly.newPlot('plot', [...plotData, centroidsTrace], layout);
+                }, 1000);
+            }
+            function getTrace(points, name) {
+                x = [];
+                y = [];
+                for (let p of points) {
+                    x.push(p[0]);
+                    y.push(p[1]);
+                }
+                return {
+                    x,
+                    y,
+                    mode: 'markers',
+                    type: 'scatter',
+                    name: name || '~',
+                    marker: { size: 30 },
+                };
+            }
+        </script>
+    </body>
+</html>
